@@ -21,11 +21,27 @@ use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
  */
 final class PmgElasticsearchExtension extends ConfigurableExtension
 {
+    private $optionsMap = [
+        'connection_class'  => 'connectionClass',
+    ];
+
     /**
      * {@inheritdoc}
      */
     public function loadInternal(array $config, ContainerBuilder $container)
     {
+        $arguments = [];
+        foreach ($this->optionsMap as $bundle => $es) {
+            if (!empty($config[$bundle])) {
+                $arguments[$es] = $config[$bundle];
+            }
+        }
 
+        $container->setDefinition(
+            'pmg_elasticsearch.client',
+            new Definition(\Elasticsearch\Client::class, [
+                $arguments,
+            ])
+        );
     }
 }

@@ -34,13 +34,22 @@ class PmgElasticsearchExtensionTest extends \PMG\ElasticsearchBundle\TestCase
         ]);
     }
 
+    public function testDefaultArgumentsBuildsAValidElasticsearchConnection()
+    {
+        $this->loadConfigAndCompile();
+
+        $client = $this->container->get('pmg_elasticsearch.client');
+
+        $this->assertInstanceOf(\Elasticsearch\Client::class, $client);
+    }
+
     protected function setUp()
     {
         $this->container = new ContainerBuilder();
         $this->container->registerExtension(new PmgElasticsearchExtension());
     }
 
-    private function loadConfigAndCompile(array $config)
+    private function loadConfigAndCompile(array $config=[])
     {
         $this->container->loadFromExtension('pmg_elasticsearch', $config);
         $this->container->compile();
