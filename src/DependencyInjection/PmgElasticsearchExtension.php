@@ -10,9 +10,11 @@
 namespace PMG\ElasticsearchBundle\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
+use PMG\ElasticsearchBundle\ElasticsearchFactory;
 
 /**
  * Our DI container extension.
@@ -27,6 +29,8 @@ final class PmgElasticsearchExtension extends ConfigurableExtension
         'connectoin_pool_class'         => 'connectionPoolClass',
         'selector_class'                => 'selectorClass',
         'serializer_class'              => 'serializerClass',
+        'sniff_on_start'                => 'sniffOnStart',
+        'enable_logging'                => 'logging',
     ];
 
     /**
@@ -41,11 +45,18 @@ final class PmgElasticsearchExtension extends ConfigurableExtension
             }
         }
 
-        $container->setDefinition(
-            'pmg_elasticsearch.client',
-            new Definition(\Elasticsearch\Client::class, [
+        $factory = $container->setDefinition(
+            'pmg_elasticsearch.client_factory',
+            new Definition(ElasticsearchFactory::class, [
                 $arguments,
+                new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
             ])
         );
+        $factory->addTag('monolog.logger', [
+            'channel'   => 'pmg_elasticsearch',
+        ]);
+
+        $client = $container->setDefinition('pmg_elasticsearch.client', new Definition(\Elasticsearch\Client::class));
+        $client->setFactory([new Reference('pmg_elasticsearch.client_factory'), 'create']);
     }
 }

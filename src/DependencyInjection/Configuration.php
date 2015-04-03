@@ -41,6 +41,10 @@ final class Configuration implements ConfigurationInterface
         $this->addClassNode($children, 'selector_class', SelectorInterface::class);
         $this->addClassNode($children, 'serializer_class', SerializerInterface::class);
 
+        $children
+            ->booleanNode('sniff_on_start')->end()
+            ->booleanNode('enable_logging')->defaultTrue()->end();
+
         return $tree;
     }
 
