@@ -22,7 +22,11 @@ use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
 final class PmgElasticsearchExtension extends ConfigurableExtension
 {
     private $optionsMap = [
-        'connection_class'  => 'connectionClass',
+        'connection_class'              => 'connectionClass',
+        'connection_factory_class'      => 'connectionFactoryClass',
+        'connectoin_pool_class'         => 'connectionPoolClass',
+        'selector_class'                => 'selectorClass',
+        'serializer_class'              => 'serializerClass',
     ];
 
     /**

@@ -13,6 +13,10 @@ use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Elasticsearch\Connections\ConnectionInterface;
+use Elasticsearch\Connections\ConnectionFactory;
+use Elasticsearch\ConnectionPool\AbstractConnectionPool;
+use Elasticsearch\ConnectionPool\Selectors\SelectorInterface;
+use Elasticsearch\Serializers\SerializerInterface;
 
 /**
  * PmgElasticsearchBundle Configuration Structure.
@@ -32,7 +36,10 @@ final class Configuration implements ConfigurationInterface
         $children = $root->children();
 
         $this->addClassNode($children, 'connection_class', ConnectionInterface::class);
-
+        $this->addClassNode($children, 'connection_factory_class', ConnectionFactory::class);
+        $this->addClassNode($children, 'connection_pool_class', AbstractConnectionPool::class);
+        $this->addClassNode($children, 'selector_class', SelectorInterface::class);
+        $this->addClassNode($children, 'serializer_class', SerializerInterface::class);
 
         return $tree;
     }
@@ -48,13 +55,9 @@ final class Configuration implements ConfigurationInterface
             ->end()
             ->validate()
                 ->ifTrue(function ($cls) use ($interface) {
-                    if (!$cls) {
-                        return false;
-                    }
-                    $impl = class_implements($cls);
-                    return !isset($impl[$interface]);
+                    return $cls && !is_subclass_of($cls, $interface);
                 })
-                ->thenInvalid('%s does not implement'.$interface)
+                ->thenInvalid('%s does not implement or subclass '.$interface)
             ->end();
     }
 }

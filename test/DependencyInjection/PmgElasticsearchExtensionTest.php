@@ -19,6 +19,9 @@ class PmgElasticsearchExtensionTest extends \PMG\ElasticsearchBundle\TestCase
     {
         return [
             ['connection_class'],
+            ['connection_factory_class'],
+            ['connection_pool_class'],
+            ['serializer_class'],
         ];
     }
 
@@ -31,6 +34,18 @@ class PmgElasticsearchExtensionTest extends \PMG\ElasticsearchBundle\TestCase
     {
         $this->loadConfigAndCompile([
             $key    => __NAMESPACE__.'\\ThisClassDoesNotExistAtAll',
+        ]);
+    }
+
+    /**
+     * @dataProvider classKeys
+     * @expectedException Symfony\Component\Config\Definition\Exception\InvalidConfigurationException
+     * @expectedExceptionMessage does not implement or subclass
+     */
+    public function testInvalidClassArgumentsCauseErrors($key)
+    {
+        $this->loadConfigAndCompile([
+            $key    => \ArrayObject::class,
         ]);
     }
 
