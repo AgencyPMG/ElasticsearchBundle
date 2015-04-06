@@ -9,8 +9,8 @@
 
 namespace PMG\ElasticsearchBundle\DependencyInjection;
 
-use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\Builder\NodeBuilder;
+use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Elasticsearch\Connections\ConnectionInterface;
 use Elasticsearch\Connections\ConnectionFactory;
@@ -32,20 +32,55 @@ final class Configuration implements ConfigurationInterface
     {
         $tree = new TreeBuilder();
         $root = $tree->root('pmg_elasticsearch');
+        $root
+            ->beforeNormalization()
+                ->ifTrue(function ($config) {
+                    // if we have only a single connection, we need to convert it
+                    // to our "multiple clients" format.
+                    return is_array($config) && !array_key_exists('clients', $config);
+                })
+                ->then(function (array $config) {
+                    return [
+                        'default_client'    => 'default',
+                        'clients'           => ['default' => $config],
+                    ];
+                })
+            ->end();
 
-        $children = $root->children();
-
-        $this->addClassNode($children, 'connection_class', ConnectionInterface::class);
-        $this->addClassNode($children, 'connection_factory_class', ConnectionFactory::class);
-        $this->addClassNode($children, 'connection_pool_class', AbstractConnectionPool::class);
-        $this->addClassNode($children, 'selector_class', SelectorInterface::class);
-        $this->addClassNode($children, 'serializer_class', SerializerInterface::class);
-
-        $children
-            ->booleanNode('sniff_on_start')->end()
-            ->booleanNode('enable_logging')->defaultTrue()->end();
+        $children = $root->children()
+            ->append($this->createClientNode())
+            ->scalarNode('default_client');
 
         return $tree;
+    }
+
+    private function createClientNode()
+    {
+        $tree = new TreeBuilder();
+        $node = $tree->root('clients');
+
+        $clients = $node
+            ->requiresAtLeastOneElement()
+            ->useAttributeAsKey('name')
+            ->prototype('array')
+            ->children();
+
+        $this->addClassNode($clients, 'connection_class', ConnectionInterface::class);
+        $this->addClassNode($clients, 'connection_factory_class', ConnectionFactory::class);
+        $this->addClassNode($clients, 'connection_pool_class', AbstractConnectionPool::class);
+        $this->addClassNode($clients, 'selector_class', SelectorInterface::class);
+        $this->addClassNode($clients, 'serializer_class', SerializerInterface::class);
+
+        $clients
+            ->booleanNode('sniff_on_start')->end()
+            ->booleanNode('enable_logging')->defaultTrue()->end()
+            ->arrayNode('hosts')
+                ->defaultValue(['http://localhost:9200'])
+                ->requiresAtLeastOneElement()
+                ->prototype('scalar')
+            ->end();
+
+        return $node;
     }
 
     private function addClassNode(NodeBuilder $node, $name, $interface)

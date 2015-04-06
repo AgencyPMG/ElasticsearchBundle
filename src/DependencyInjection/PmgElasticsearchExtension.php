@@ -38,6 +38,38 @@ final class PmgElasticsearchExtension extends ConfigurableExtension
      */
     public function loadInternal(array $config, ContainerBuilder $container)
     {
+        foreach ($config['clients'] as $clientName => $clientConfig) {
+            $this->addClient($container, $clientName, $clientConfig);
+        }
+
+        $container->setAlias('pmg_elasticsearch.client', sprintf(
+            'pmg_elasticsearch.%s.client',
+            $config['default_client']
+        ));
+    }
+
+    private function addClient(ContainerBuilder $container, $name, array $config)
+    {
+        $factory = $container->setDefinition(
+            "pmg_elasticsearch.{$name}.client_factory",
+            new Definition(ElasticsearchFactory::class, [
+                $this->createClientArguments($config),
+                new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+            ])
+        );
+        $factory->addTag('monolog.logger', [
+            'channel'   => 'pmg_elasticsearch'
+        ]);
+
+        $client = $container->setDefinition(
+            "pmg_elasticsearch.{$name}.client",
+            new Definition(\Elasticsearch\Client::class)
+        );
+        $client->setFactory([new Reference("pmg_elasticsearch.{$name}.client_factory"), 'create']);
+    }
+
+    private function createClientArguments(array $config)
+    {
         $arguments = [];
         foreach ($this->optionsMap as $bundle => $es) {
             if (!empty($config[$bundle])) {
@@ -45,18 +77,6 @@ final class PmgElasticsearchExtension extends ConfigurableExtension
             }
         }
 
-        $factory = $container->setDefinition(
-            'pmg_elasticsearch.client_factory',
-            new Definition(ElasticsearchFactory::class, [
-                $arguments,
-                new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
-            ])
-        );
-        $factory->addTag('monolog.logger', [
-            'channel'   => 'pmg_elasticsearch',
-        ]);
-
-        $client = $container->setDefinition('pmg_elasticsearch.client', new Definition(\Elasticsearch\Client::class));
-        $client->setFactory([new Reference('pmg_elasticsearch.client_factory'), 'create']);
+        return $arguments;
     }
 }

@@ -30,7 +30,7 @@ class PmgElasticsearchExtensionTest extends \PMG\ElasticsearchBundle\TestCase
      * @expectedException Symfony\Component\Config\Definition\Exception\InvalidConfigurationException
      * @expectedExceptionMessageRegExp /Class .* does not exist/
      */
-    public function testNonExistentClassesCauseErrorsInConfiguration($key)
+    public function testNonExistentClassesCauseErrorsInConfigurationWhenUsedAtRoot($key)
     {
         $this->loadConfigAndCompile([
             $key    => __NAMESPACE__.'\\ThisClassDoesNotExistAtAll',
@@ -40,12 +40,46 @@ class PmgElasticsearchExtensionTest extends \PMG\ElasticsearchBundle\TestCase
     /**
      * @dataProvider classKeys
      * @expectedException Symfony\Component\Config\Definition\Exception\InvalidConfigurationException
+     * @expectedExceptionMessageRegExp /Class .* does not exist/
+     */
+    public function testNonExistentClassesCauseErrorsInConfigurationWhenUsedInSingleClient($key)
+    {
+        $this->loadConfigAndCompile([
+            'default_client'    => 'example',
+            'clients'           => [
+                'example' => [
+                    $key    => __NAMESPACE__.'\\ThisClassDoesNotExistAtAll',
+                ],
+            ],
+        ]);
+    }
+
+    /**
+     * @dataProvider classKeys
+     * @expectedException Symfony\Component\Config\Definition\Exception\InvalidConfigurationException
      * @expectedExceptionMessage does not implement or subclass
      */
-    public function testInvalidClassArgumentsCauseErrors($key)
+    public function testInvalidClassArgumentsCauseErrorsWhenUsedAtRoot($key)
     {
         $this->loadConfigAndCompile([
             $key    => \ArrayObject::class,
+        ]);
+    }
+
+    /**
+     * @dataProvider classKeys
+     * @expectedException Symfony\Component\Config\Definition\Exception\InvalidConfigurationException
+     * @expectedExceptionMessage does not implement or subclass
+     */
+    public function testInvalidClassArgumentsCauseErrorsWhenUsedInSingleClient($key)
+    {
+        $this->loadConfigAndCompile([
+            'default_client'    => 'example',
+            'clients'           => [
+                'example' => [
+                    $key    => \ArrayObject::class,
+                ],
+            ],
         ]);
     }
 
@@ -54,8 +88,10 @@ class PmgElasticsearchExtensionTest extends \PMG\ElasticsearchBundle\TestCase
         $this->loadConfigAndCompile();
 
         $client = $this->container->get('pmg_elasticsearch.client');
-
         $this->assertInstanceOf(\Elasticsearch\Client::class, $client);
+
+        $client2 = $this->container->get('pmg_elasticsearch.default.client');
+        $this->assertSame($client, $client2);
     }
 
     protected function setUp()
