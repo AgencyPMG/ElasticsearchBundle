@@ -31,6 +31,7 @@ final class PmgElasticsearchExtension extends ConfigurableExtension
         'serializer_class'              => 'serializerClass',
         'sniff_on_start'                => 'sniffOnStart',
         'enable_logging'                => 'logging',
+        'hosts'                         => 'hosts',
     ];
 
     /**
