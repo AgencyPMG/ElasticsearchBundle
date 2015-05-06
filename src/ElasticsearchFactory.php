@@ -17,7 +17,7 @@ use Psr\Log\NullLogger;
  *
  * @since   0.1
  */
-final class ElasticsearchFactory
+class ElasticsearchFactory
 {
     private $params;
 
@@ -32,11 +32,16 @@ final class ElasticsearchFactory
     public function create()
     {
         $params = $this->params;
-        if (!empty($param['logging'])) {
+        if (!empty($params['logging'])) {
             $params['logObject'] = $this->logger;
             $params['traceObject'] = $this->logger;
         }
 
+        return $this->newClient($params);
+    }
+
+    protected function newClient(array $params)
+    {
         return new \Elasticsearch\Client($params);
     }
 }

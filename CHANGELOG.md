@@ -1,5 +1,15 @@
 # Change Log
 
+## 1.0.3
+
+## Changed
+
+- `ElasticsearchFactory` is no longer final
+
+### Fixed
+
+- Don't ignore the logging parameter in configuration
+
 ## 1.0.2
 
 ### Changed
