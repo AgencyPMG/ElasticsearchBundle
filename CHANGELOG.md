@@ -2,7 +2,7 @@
 
 ## 1.0.3
 
-## Changed
+### Changed
 
 - `ElasticsearchFactory` is no longer final
 
