@@ -10,6 +10,7 @@
 namespace PMG\ElasticsearchBundle\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 
 class PmgElasticsearchExtensionTest extends \PMG\ElasticsearchBundle\TestCase
 {
@@ -18,20 +19,18 @@ class PmgElasticsearchExtensionTest extends \PMG\ElasticsearchBundle\TestCase
     public static function classKeys()
     {
         return [
-            ['connection_class'],
-            ['connection_factory_class'],
-            ['connection_pool_class'],
             ['serializer_class'],
         ];
     }
 
     /**
      * @dataProvider classKeys
-     * @expectedException Symfony\Component\Config\Definition\Exception\InvalidConfigurationException
-     * @expectedExceptionMessageRegExp /Class .* does not exist/
      */
     public function testNonExistentClassesCauseErrorsInConfigurationWhenUsedAtRoot($key)
     {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageRegExp('/Class .* does not exist/');
+
         $this->loadConfigAndCompile([
             $key    => __NAMESPACE__.'\\ThisClassDoesNotExistAtAll',
         ]);
@@ -39,11 +38,12 @@ class PmgElasticsearchExtensionTest extends \PMG\ElasticsearchBundle\TestCase
 
     /**
      * @dataProvider classKeys
-     * @expectedException Symfony\Component\Config\Definition\Exception\InvalidConfigurationException
-     * @expectedExceptionMessageRegExp /Class .* does not exist/
      */
     public function testNonExistentClassesCauseErrorsInConfigurationWhenUsedInSingleClient($key)
     {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageRegExp('/Class .* does not exist/');
+
         $this->loadConfigAndCompile([
             'default_client'    => 'example',
             'clients'           => [
@@ -56,11 +56,12 @@ class PmgElasticsearchExtensionTest extends \PMG\ElasticsearchBundle\TestCase
 
     /**
      * @dataProvider classKeys
-     * @expectedException Symfony\Component\Config\Definition\Exception\InvalidConfigurationException
-     * @expectedExceptionMessage does not implement or subclass
      */
     public function testInvalidClassArgumentsCauseErrorsWhenUsedAtRoot($key)
     {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('does not implement or subclass');
+
         $this->loadConfigAndCompile([
             $key    => \ArrayObject::class,
         ]);
@@ -68,11 +69,12 @@ class PmgElasticsearchExtensionTest extends \PMG\ElasticsearchBundle\TestCase
 
     /**
      * @dataProvider classKeys
-     * @expectedException Symfony\Component\Config\Definition\Exception\InvalidConfigurationException
-     * @expectedExceptionMessage does not implement or subclass
      */
     public function testInvalidClassArgumentsCauseErrorsWhenUsedInSingleClient($key)
     {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('does not implement or subclass');
+
         $this->loadConfigAndCompile([
             'default_client'    => 'example',
             'clients'           => [

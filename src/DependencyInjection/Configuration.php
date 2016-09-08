@@ -12,8 +12,8 @@ namespace PMG\ElasticsearchBundle\DependencyInjection;
 use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
-use Elasticsearch\Connections\ConnectionInterface;
-use Elasticsearch\Connections\ConnectionFactory;
+use Elasticsearch\Connections\ConnectionFactoryInterface;
+use Elasticsearch\ConnectionPool\ConnectionPoolInterface;
 use Elasticsearch\ConnectionPool\AbstractConnectionPool;
 use Elasticsearch\ConnectionPool\Selectors\SelectorInterface;
 use Elasticsearch\Serializers\SerializerInterface;
@@ -65,13 +65,20 @@ final class Configuration implements ConfigurationInterface
             ->prototype('array')
             ->children();
 
-        $this->addClassNode($clients, 'connection_class', ConnectionInterface::class);
-        $this->addClassNode($clients, 'connection_factory_class', ConnectionFactory::class);
-        $this->addClassNode($clients, 'connection_pool_class', AbstractConnectionPool::class);
-        $this->addClassNode($clients, 'selector_class', SelectorInterface::class);
-        $this->addClassNode($clients, 'serializer_class', SerializerInterface::class);
+        $this->addClassNode($clients, 'serializer_class', SerializerInterface::class)
+            ->info(sprintf('Alternative to `serializer`. The class to use for the serializer, must implement %s', SerializerInterface::class))
+        ->end();
 
         $clients
+            ->scalarNode('connection_factory')
+                ->info(sprintf('A service identifier that creates an instance of %s', ConnectionFactoryInterface::class))
+            ->end()
+            ->scalarNode('connection_pool')
+                ->info(sprintf('A service identifier that creates an instance of %s', ConnectionPoolInterface::class))
+            ->end()
+            ->scalarNode('serializer')
+                ->info(sprintf('A service identifier that creates an instance of %s', SerializerInterface::class))
+            ->end()
             ->booleanNode('sniff_on_start')->end()
             ->booleanNode('enable_logging')->defaultTrue()->end()
             ->arrayNode('hosts')
@@ -85,7 +92,7 @@ final class Configuration implements ConfigurationInterface
 
     private function addClassNode(NodeBuilder $node, $name, $interface)
     {
-        $node->scalarNode($name)
+        return $node->scalarNode($name)
             ->validate()
                 ->ifTrue(function ($cls) {
                     return $cls && !class_exists($cls);
