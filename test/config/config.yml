@@ -10,9 +10,6 @@ services:
 
 framework:
     test: ~
-    assets: false
-    templating: false
-    annotations: false
     secret: "%secret%"
     router:
         resource: "%kernel.root_dir%/config/routing.yml"
