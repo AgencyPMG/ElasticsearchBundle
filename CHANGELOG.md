@@ -1,5 +1,26 @@
 # Change Log
 
+## 3.0.0
+
+### Changed
+
+- Require elasticsearch/elasticsearch 2.X OR 5.X. Bumped to a new major version
+  to avoid surprising anyone who is using the bundle.
+
+### Fixed
+
+n/a
+
+## 2.0.0
+
+### Changed
+
+- Require elasticsearch/elasticsearch 2.X
+
+### Fixed
+
+n/a
+
 ## 1.0.3
 
 ### Changed
