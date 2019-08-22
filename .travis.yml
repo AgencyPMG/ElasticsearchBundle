@@ -7,6 +7,10 @@ php:
 services:
   - elasticsearch
 
+matrix:
+  allowed_failures:
+    - php: '7.3'
+
 env:
   matrix:
     - COMPOSER_FLAGS=""
