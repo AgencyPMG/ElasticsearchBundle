@@ -1,9 +1,10 @@
 parameters:
     secret: dev
-    locale: ~
+    locale: en
 
 services:
     home_controller:
+        public: true
         class: PMG\ElasticsearchBundle\TestController
         calls:
             - [setContainer, ['@service_container']]
@@ -14,13 +15,11 @@ framework:
     router:
         resource: "%kernel.root_dir%/config/routing.yml"
         strict_requirements: true
-    templating:
-        engines: ['php']
     default_locale:  "%locale%"
-    trusted_hosts:   ~
-    trusted_proxies: ~
-    fragments:       ~
-    http_method_override: true
+    fragments: false
+    http_method_override: false
+    validation: false
+    serializer: false
 
 
 monolog:
@@ -29,5 +28,3 @@ monolog:
             type:   stream
             path:   "%kernel.logs_dir%/%kernel.environment%.log"
             level:  debug
-
-pmg_elasticsearch: ~
