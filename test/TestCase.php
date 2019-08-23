@@ -9,7 +9,9 @@
 
 namespace PMG\ElasticsearchBundle;
 
-abstract class TestCase extends \PHPUnit_Framework_TestCase
-{
+use PHPUnit\Framework\TestCase as PHPUnitTestcase;
 
+abstract class TestCase extends PHPUnitTestCase
+{
+    // noop
 }

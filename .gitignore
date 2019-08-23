@@ -1,6 +1,7 @@
 /vendor/*
 /app/*
 composer.lock
+.phpunit.result.cache
 
 # ignore certain files
 *.pyc

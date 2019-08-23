@@ -96,7 +96,7 @@ class PmgElasticsearchExtensionTest extends \PMG\ElasticsearchBundle\TestCase
         $this->assertSame($client, $client2);
     }
 
-    protected function setUp()
+    protected function setUp() : void
     {
         $this->container = new ContainerBuilder();
         $this->container->registerExtension(new PmgElasticsearchExtension());

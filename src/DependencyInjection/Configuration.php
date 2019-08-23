@@ -30,20 +30,26 @@ final class Configuration implements ConfigurationInterface
      */
     public function getConfigTreeBuilder()
     {
-        $tree = new TreeBuilder();
-        $root = $tree->root('pmg_elasticsearch');
+        [$tree, $root] = $this->createTreeBuilder('pmg_elasticsearch');
+
         $root
             ->beforeNormalization()
-                ->ifTrue(function ($config) {
+            ->ifTrue(function ($config) {
                     // if we have only a single connection, we need to convert it
                     // to our "multiple clients" format.
                     return is_array($config) && !array_key_exists('clients', $config);
                 })
                 ->then(function (array $config) {
-                    return [
-                        'default_client'    => 'default',
-                        'clients'           => ['default' => $config],
+                    $fixed = [
+                        'default_client' => $config['default_client'] ?? 'default',
                     ];
+                    unset($config['default_client']);
+
+                    $fixed['clients'] = [
+                        $fixed['default_client'] => $config,
+                    ];
+
+                    return $fixed;
                 })
             ->end();
 
@@ -56,8 +62,7 @@ final class Configuration implements ConfigurationInterface
 
     private function createClientNode()
     {
-        $tree = new TreeBuilder();
-        $node = $tree->root('clients');
+        [$tree, $node] = $this->createTreeBuilder('clients');
 
         $clients = $node
             ->requiresAtLeastOneElement()
@@ -105,5 +110,19 @@ final class Configuration implements ConfigurationInterface
                 })
                 ->thenInvalid('%s does not implement or subclass '.$interface)
             ->end();
+    }
+
+    private function createTreeBuilder(string $rootName) : array
+    {
+        // compat: symfony < 4.1
+        if (method_exists(TreeBuilder::class, 'getRootNode')) {
+            $tree = new TreeBuilder($rootName);
+            $root = $tree->getRootNode();
+        } else {
+            $tree = new TreeBuilder();
+            $root = $tree->root($rootName);
+        }
+
+        return [$tree, $root];
     }
 }

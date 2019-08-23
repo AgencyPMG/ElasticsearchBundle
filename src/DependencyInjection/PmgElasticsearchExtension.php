@@ -34,8 +34,8 @@ final class PmgElasticsearchExtension extends ConfigurableExtension
 
         $container->setAlias('pmg_elasticsearch.client', sprintf(
             'pmg_elasticsearch.%s.client',
-            $config['default_client']
-        ));
+            $config['default_client'] ?? current(array_keys($config['clients']))
+        ))->setPublic(true);
     }
 
     private function addClient(ContainerBuilder $container, $name, array $config)
@@ -78,5 +78,6 @@ final class PmgElasticsearchExtension extends ConfigurableExtension
             new Definition(\Elasticsearch\Client::class)
         );
         $client->setFactory([new Reference("pmg_elasticsearch.{$name}.client_builder"), 'build']);
+        $client->setPublic(true);
     }
 }
