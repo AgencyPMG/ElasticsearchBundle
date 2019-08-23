@@ -1,5 +1,11 @@
 # Change Log
 
+## 4.0.0
+
+### Changed
+
+- Require Symfony ~4.0, drop support for Symfony ~2.7 and ~3.0
+
 ## 3.0.0
 
 ### Changed
